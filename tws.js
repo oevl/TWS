@@ -49,9 +49,46 @@ exports.browse = function (path, port) {
 		}
 	});
 };
-
+exports.serve = function (path, port) {
+	if (port === undefined)
+		port = nextPort++;
+	console.log('serving "' + path + '"');
+	var svr = http.createServer(dispatcher).listen(port, localhost);
+	svr.on('error', function (ex) {
+		http.get({
+				host: localhost,
+				port: startPort,
+				path: "/.tws/browse:" + path
+			},
+			function (res) {
+				if (res.statusCode != 200)
+					console.log("Command res: " + res.statusCode);
+			});
+		console.log("Net error: ");
+		console.dir(ex);
+	});
+	svr.on('listening', function () {
+		// var exec = require('child_process').exec;
+		// var browser = require('./browser.js');
+		// if (!browser.command)
+		// 	console.log("Browser not found, tried \n" + browser.tried.join('\n'));
+		// else {
+		// 	var cmd = [browser.command, ' "', 'http://localhost:', port, '/', path, '"'].join('');
+		// 	child_process.exec(cmd, function (err, stdout, stderr) {
+		// 		if (err) {
+		// 			console.log("Failed to start " + cmd);
+		// 			console.dir(err);
+		// 		}
+		// 		else
+		// 			console.log("Started " + cmd);
+		// 	}
+		// 		);
+		// }
+	});
+};
 var fullpath = fs.realpathSync(process.argv.length > 2 ? process.argv[2] : "").replace('\\','/');
 
-exports.browse(fullpath);
+exports.serve(fullpath);
+//exports.browse(fullpath);
 console.log("Ctrl+C terminates process");
 
